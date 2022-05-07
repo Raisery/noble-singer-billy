@@ -72,12 +72,10 @@ client.on("interactionCreate", async function (interaction) {
             break;
         case 'stop':
             msgI.stop();
-            await interaction.reply("Stopped !");
             await interaction.deleteReply();
             break;
         case 'skip':
             await msgI.skip();
-            await interaction.reply("Stopped !");
             await interaction.deleteReply();
             break;
     }

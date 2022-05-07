@@ -50,7 +50,17 @@ module.exports = class Speaker {
         }
         
         console.log("Aprés le play()");
-        speaker.on(AudioPlayerStatus.Idle, () => connexion.destroy());
+        speaker.on(AudioPlayerStatus.Idle, async () => {
+            msgI.songList.shift();
+            if(msgI.songList.length) {
+                speaker.stop();
+                Speaker.play(msgI);
+            }
+            else {
+                connexion.destroy();
+            }
+            await msgI.update();
+        });
 
         return true
     }
