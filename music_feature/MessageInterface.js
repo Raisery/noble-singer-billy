@@ -53,6 +53,7 @@ module.exports = class MessageInterface {
         this.message;
         this.songList = [];
         this.speakerChannel = null;
+        this.connection = null;
     }
 
     static async createMessageInterface(textChannel) {
@@ -130,18 +131,22 @@ module.exports = class MessageInterface {
         const song = search.videos.slice(0, 1)[0];
         console.log("On ajoute le son a la liste");
         this.songList.push(song);
-        this.update();
+        
         //si c'est la premiere musique on lance le speaker
         if (this.speakerChannel == null) {
             this.speakerChannel = voiceChannel;
             await Speaker.play(this);
         }
+        await this.update();
     }
 
     async skip() {
+        
         this.songList.shift();
         if (this.songList.length) {
             await this.update();
+            this.connection._state.subscription.player.stop();
+            this.connection._state.subscription.player.unsubscribe(this.connection);
             await Speaker.play(this);
         }
         else (
@@ -154,7 +159,9 @@ module.exports = class MessageInterface {
         if (!this.speakerChannel) {
             return
         }
-        getVoiceConnection(this.speakerChannel.guild.id).destroy();
+        this.connection._state.subscription.player.stop();
+        this.connection._state.subscription.player.unsubscribe(this.connection);
+        this.connection.destroy();
         console.log("presque reset");
         this.songList = [];
         this.speakerChannel = null;
@@ -188,7 +195,7 @@ module.exports = class MessageInterface {
         msg.content = CONTENT_INTERFACE + "\n";
         var index = 0;
         for (var song in this.songList) {
-            const reste = this.songList - 4;
+            const reste = this.songList.length - 5;
             var autre = "autre";
             if (reste > 1) {
                 autre = "autres";
@@ -202,13 +209,12 @@ module.exports = class MessageInterface {
             index++;
         };
         song = this.songList[0];
-        console.log(song);
         await this.message.edit({
             content: msg.content,
             embeds: [{
                 title: song.title,
                 url: song.url,
-                description: `Bot Noble Singer Billy créé par Raisery`,
+                description: `Je suis actuellement dans **${this.speakerChannel.name}**`,
                 color: 0xD43790,
                 image: {
                     url: song.image,

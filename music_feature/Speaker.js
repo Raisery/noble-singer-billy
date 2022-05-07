@@ -6,29 +6,29 @@ module.exports = class Speaker {
 
     static async play(msgI) {
 
-        const connexion = joinVoiceChannel({
+        msgI.connection = joinVoiceChannel({
             channelId: msgI.speakerChannel.id,
             guildId: msgI.speakerChannel.guild.id,
             adapterCreator: msgI.speakerChannel.guild.voiceAdapterCreator,
         });
 
-        connexion.on(VoiceConnectionStatus.Ready, () => {
+        msgI.connection.on(VoiceConnectionStatus.Ready, () => {
             console.log('The connection has entered the Ready state - ready to play audio!');
         });
 
-        connexion.on(VoiceConnectionStatus.Disconnected, async (oldState, newState) => {
+        msgI.connection.on(VoiceConnectionStatus.Disconnected, async (oldState, newState) => {
             try {
                 console.log("Tentative de reconnexion")
                 await Promise.race([
-                    entersState(connexion, VoiceConnectionStatus.Signalling, 5_000),
-                    entersState(connexion, VoiceConnectionStatus.Connecting, 5_000),
+                    entersState(msgI.connection, VoiceConnectionStatus.Signalling, 5_000),
+                    entersState(msgI.connection, VoiceConnectionStatus.Connecting, 5_000),
                 ]);
                 
                 // Seems to be reconnecting to a new channel - ignore disconnect
             } catch (error) {
                 // Seems to be a real disconnect which SHOULDN'T be recovered from
                 console.error(error);
-                connexion.destroy();
+                msgI.connection.destroy();
             }
         });
         const speaker = createAudioPlayer();
@@ -44,12 +44,12 @@ module.exports = class Speaker {
             const resource = createAudioResource(stream, { inputType: StreamType.Arbitrary });
             console.log("on lance la musique");
             speaker.play(resource);
-            connexion.subscribe(speaker);
-            connexion.setSpeaking(true);
+            msgI.connection.subscribe(speaker);
+            console.log(msgI.connection);
 
         }
+
         
-        console.log("Aprés le play()");
         speaker.on(AudioPlayerStatus.Idle, async () => {
             msgI.songList.shift();
             if(msgI.songList.length) {
@@ -57,7 +57,7 @@ module.exports = class Speaker {
                 Speaker.play(msgI);
             }
             else {
-                connexion.destroy();
+                msgI.connection.destroy();
             }
             await msgI.update();
         });
