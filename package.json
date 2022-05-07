@@ -11,5 +11,29 @@
     "opusscript": "^0.0.8",
     "yt-search": "^2.10.3",
     "ytdl-core": "^4.11.0"
-  }
+  },
+  "name": "noble-musik",
+  "description": "Noble Singer Billy bot Discord",
+  "version": "0.1.0",
+  "main": "bot.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "none"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Raisery/noble-singer-billy.git"
+  },
+  "keywords": [
+    "bot",
+    "music",
+    "discord",
+    "js"
+  ],
+  "author": "Raisery",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Raisery/noble-singer-billy/issues"
+  },
+  "homepage": "https://github.com/Raisery/noble-singer-billy#readme"
 }
