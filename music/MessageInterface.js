@@ -3,6 +3,7 @@ const fs = require("fs");
 const sendTimed = require("../utils/sendTimed");
 const Speaker = require('./Speaker');
 const { PlayerSubscription, getVoiceConnection } = require('@discordjs/voice');
+require("dotenv").config();
 
 const CONTENT_INTERFACE = `**[ Playlist ]** Rejoins un voice chat et écrit la musique de ton choix.`;
 const EMBED_INTERFACE = {
@@ -73,7 +74,7 @@ module.exports = class MessageInterface {
         }
         console.log(`Suppression d'un messageInterface : messageInterfaceList = ${messageInterfaceList.length}`);
 
-        const data = JSON.parse(fs.readFileSync("./data.json"));
+        const data = JSON.parse(fs.readFileSync(process.env.DATA));
         data.channels = [];
         messageInterfaceList.forEach(function (messageInterface) {
             if (messageInterface.id != msgI.id) {
@@ -81,7 +82,7 @@ module.exports = class MessageInterface {
             }
 
         });
-        fs.writeFileSync("./data.json", JSON.stringify(data));
+        fs.writeFileSync(process.env.DATA, JSON.stringify(data));
     }
 
     static getMessageInterfaceFromChannel(textChannel) {
@@ -95,17 +96,17 @@ module.exports = class MessageInterface {
 
     //sauvegarde les channels 
     static save() {
-        const data = JSON.parse(fs.readFileSync("./data.json"));
+        const data = JSON.parse(fs.readFileSync(process.env.DATA));
         data.channels = [];
         messageInterfaceList.forEach(function (msgI) {
             data.channels.push(msgI.textChannel);
         });
-        fs.writeFileSync("./data.json", JSON.stringify(data));
+        fs.writeFileSync(process.env.DATA, JSON.stringify(data));
 
     }
 
     static async restore(client) {
-        const oldData = JSON.parse(fs.readFileSync("./data.json"));
+        const oldData = JSON.parse(fs.readFileSync(process.env.DATA));
         oldData.channels.forEach(async function (textChannel) {
             let channelListened = await client.channels.fetch(textChannel.id);
             let messages = await channelListened.messages.fetch({ limit: 100 });
