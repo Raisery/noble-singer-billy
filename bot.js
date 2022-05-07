@@ -71,11 +71,11 @@ client.on("interactionCreate", async function (interaction) {
             break;
         case 'stop':
             msgI.stop();
-            await interaction.followUp("Stop !");
+            await interaction.deferReply();
             break;
         case 'skip':
             await msgI.skip();
-            await interaction.followUp("Next !");
+            await interaction.deferReply();
             break;
     }
 });
