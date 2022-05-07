@@ -2,6 +2,7 @@ const ytSearch = require('yt-search');
 const fs = require("fs");
 const sendTimed = require("../utils/sendTimed");
 const Speaker = require('./Speaker');
+const { PlayerSubscription, getVoiceConnection } = require('@discordjs/voice');
 
 const CONTENT_INTERFACE = `**[ Playlist ]** Rejoins un voice chat et écrit la musique de ton choix.`;
 const EMBED_INTERFACE = {
@@ -54,36 +55,25 @@ module.exports = class MessageInterface {
         this.speakerChannel = null;
     }
 
-    //initialisation du message
-    async reset() {
-        if(this.message){
-            this.message.delete();
-        }
-        this.message = await this.textChannel.send({ content: CONTENT_INTERFACE, embeds: [EMBED_INTERFACE], components: BUTTON });
-
-        this.songList = [];
-        this.speakerChannel = null;
-    }
-
     static async createMessageInterface(textChannel) {
         let msgI = new MessageInterface(textChannel);
-        await msgI.reset();
+        await msgI.init();
         messageInterfaceList.push(msgI);
         console.log(`Création d'un messageInterface : messageInterfaceList = ${messageInterfaceList.length}`);
         MessageInterface.save();
         return msgI
     }
 
-    static deleteMessageInterface(msgI) {
-        msgI.message.delete();
+    static async deleteMessageInterface(msgI) {
+        await msgI.message.delete();
         let index = messageInterfaceList.indexOf(msgI);
         if (index !== -1) {
-            messageInterfaceList.slistenerice(index, 1);
+            messageInterfaceList.slice(index, 1);
         }
         console.log(`Suppression d'un messageInterface : messageInterfaceList = ${messageInterfaceList.length}`);
 
         const data = JSON.parse(fs.readFileSync("./music_feature/data.json"));
-        data.list = [];
+        data.channels = [];
         messageInterfaceList.forEach(function (messageInterface) {
             if (messageInterface.id != msgI.id) {
                 data.list.push(messageInterface.textChannel);
@@ -127,66 +117,107 @@ module.exports = class MessageInterface {
 
     async addSong(msg) {
 
-        if(!msg.member.voice.channelId) {
-            return sendTimed(msg.channel,"Tu dois être dans un channel vocal !",3000)
+        if (!msg.member.voice.channelId) {
+            return sendTimed(msg.channel, "Tu dois être dans un channel vocal !", 3000)
         }
 
         const voiceChannel = await msg.channel.guild.channels.fetch(msg.member.voice.channelId);
 
-        if(this.speakerChannel != null && this.speakerChannel != voiceChannel) {
-            return sendTimed(msg.channel,"Tu dois être dans le même channel que le bot",3000)
+        if (this.speakerChannel != null && this.speakerChannel != voiceChannel) {
+            return sendTimed(msg.channel, "Tu dois être dans le même channel que le bot", 3000)
         }
         const search = await ytSearch(msg.content);
         const song = search.videos.slice(0, 1)[0];
+        console.log("On ajoute le son a la liste");
         this.songList.push(song);
-        console.log(this.songList);
         this.update();
         //si c'est la premiere musique on lance le speaker
-        if(this.speakerChannel == null) {
+        if (this.speakerChannel == null) {
             this.speakerChannel = voiceChannel;
-            Speaker.play(this);
+            await Speaker.play(this);
         }
     }
+
+    async skip() {
+        this.songList.shift();
+        if (this.songList.length) {
+            await this.update();
+            await Speaker.play(this);
+        }
+        else (
+            await this.stop()
+        )
+        return
+    }
+
+    async stop() {
+        if (!this.speakerChannel) {
+            return
+        }
+        getVoiceConnection(this.speakerChannel.guild.id).destroy();
+        console.log("presque reset");
+        this.songList = [];
+        this.speakerChannel = null;
+        await this.update();
+    }
+
+     //initialisation du message
+     async init() {
+        this.message = await this.textChannel.send({ content: CONTENT_INTERFACE, embeds: [EMBED_INTERFACE], components: BUTTON });
+    }
+
+
+    async reset() {
+        await this.message.edit({ content: CONTENT_INTERFACE, embeds: [EMBED_INTERFACE], components: BUTTON });
+
+        this.songList = [];
+        this.speakerChannel = null;
+        console.log("RESET DONE");
+    }
+
 
     //met a jour l'affichage de l'interface msg du bot
     async update() {
         //on reset si il n'y a plus de musique dans la liste
         if (!this.songList.length) {
-            this.reset();
+            await this.reset();
             return
         }
 
         const msg = this.message;
-        msg.content = CONTENT_INTERFACE;
+        msg.content = CONTENT_INTERFACE + "\n";
         var index = 0;
         for (var song in this.songList) {
-            const reste = this.songList-4;
+            const reste = this.songList - 4;
             var autre = "autre";
-            if(reste > 1) {
+            if (reste > 1) {
                 autre = "autres";
             }
             if (index <= 4) {
-                msg.content += `\n**[${index + 1}]**. ${song.title}`
+                msg.content += `\n**[${index + 1}]**. ${this.songList[index].title}`
             }
             if (index == 5) {
                 msg.content += `\net **${(reste)}** ${autre}...`
             }
             index++;
         };
+        song = this.songList[0];
+        console.log(song);
         await this.message.edit({
             content: msg.content,
             embeds: [{
-                title: this.songList[0].title,
-                url: this.songList[0].url,
+                title: song.title,
+                url: song.url,
                 description: `Bot Noble Singer Billy créé par Raisery`,
                 color: 0xD43790,
                 image: {
-                    url: this.songList[0].image,
+                    url: song.image,
                 },
                 thumbnail: {
                     url: 'https://t3.ftcdn.net/jpg/04/79/81/76/360_F_479817672_BpTyGX9qAl3rs9mHqvQUsyWXTJrkLUII.jpg',
                 },
-            },]
+            },],
+            components: BUTTON
         });
 
     }

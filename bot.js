@@ -1,6 +1,7 @@
 const { Client, Intents } = require('discord.js');
 const MessageInterface = require('./music_feature/MessageInterface');
 const sendTimed = require('./utils/sendTimed');
+const sleep = require('./utils/sleep');
 require("dotenv").config();
 const prefix = process.env.PREFIX;
 const token = process.env.BOT_TOKEN;
@@ -34,12 +35,14 @@ client.on('messageCreate', async function (msg) {
                     sendTimed(msg.channel, "Installation...", 3000);
                     //Initialisation du nouveau msgI
                     await MessageInterface.createMessageInterface(msg.channel);
+                    return
                     break;
                 case 'uninstall' :
                     if(!msgI) {
                         return sendTimed(msg.channel, "Ce channel n'est pas setup", 3000);
                     }
-                    MessageInterface.deleteMessageInterface(msgI);
+                    await MessageInterface.deleteMessageInterface(msgI);
+                    return
                     break;
 
             }
@@ -51,7 +54,6 @@ client.on('messageCreate', async function (msg) {
     //Test si le channel est un channel music
     let msgI = MessageInterface.getMessageInterfaceFromChannel(msg.channel);
     if (msgI) {
-        console.log("On joute le son a la playlist");
         await msg.delete();
         await msgI.addSong(msg);
     }
@@ -69,9 +71,11 @@ client.on("interactionCreate", async function (interaction) {
             break;
         case 'stop':
             msgI.stop();
+            await interaction.followUp("Stop !");
             break;
         case 'skip':
-            msgI.next();
+            await msgI.skip();
+            await interaction.followUp("Next !");
             break;
     }
 });
