@@ -1,5 +1,5 @@
 const { Client, Intents } = require('discord.js');
-const MessageInterface = require('./music_feature/MessageInterface');
+const MessageInterface = require('./music/MessageInterface');
 const sendTimed = require('./utils/sendTimed');
 const sleep = require('./utils/sleep');
 require("dotenv").config();

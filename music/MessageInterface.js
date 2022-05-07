@@ -73,7 +73,7 @@ module.exports = class MessageInterface {
         }
         console.log(`Suppression d'un messageInterface : messageInterfaceList = ${messageInterfaceList.length}`);
 
-        const data = JSON.parse(fs.readFileSync("./music_feature/data.json"));
+        const data = JSON.parse(fs.readFileSync("./data.json"));
         data.channels = [];
         messageInterfaceList.forEach(function (messageInterface) {
             if (messageInterface.id != msgI.id) {
@@ -81,7 +81,7 @@ module.exports = class MessageInterface {
             }
 
         });
-        fs.writeFileSync("./music_feature/data.json", JSON.stringify(data));
+        fs.writeFileSync("./data.json", JSON.stringify(data));
     }
 
     static getMessageInterfaceFromChannel(textChannel) {
@@ -95,17 +95,17 @@ module.exports = class MessageInterface {
 
     //sauvegarde les channels 
     static save() {
-        const data = JSON.parse(fs.readFileSync("./music_feature/data.json"));
+        const data = JSON.parse(fs.readFileSync("./data.json"));
         data.channels = [];
         messageInterfaceList.forEach(function (msgI) {
             data.channels.push(msgI.textChannel);
         });
-        fs.writeFileSync("./music_feature/data.json", JSON.stringify(data));
+        fs.writeFileSync("./data.json", JSON.stringify(data));
 
     }
 
     static async restore(client) {
-        const oldData = JSON.parse(fs.readFileSync("./music_feature/data.json"));
+        const oldData = JSON.parse(fs.readFileSync("./data.json"));
         oldData.channels.forEach(async function (textChannel) {
             let channelListened = await client.channels.fetch(textChannel.id);
             let messages = await channelListened.messages.fetch({ limit: 100 });
