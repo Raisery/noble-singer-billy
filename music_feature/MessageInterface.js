@@ -23,8 +23,8 @@ const BUTTON = [
         components: [
             {
                 style: 2,
-                custom_id: `listeneray_pause`,
-                disabled: false,
+                custom_id: `play_pause`,
+                disabled: true,
                 label: 'PAUSE',
                 type: 2,
             },
