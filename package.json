@@ -4,6 +4,7 @@
     "@discordjs/voice": "^0.9.0",
     "discord-api-types": "^0.32.1",
     "discord.js": "^13.6.0",
+    "dotenv": "^16.0.0",
     "ffmpeg": "^0.0.4",
     "ffmpeg-static": "^4.4.1",
     "fs": "^0.0.1-security",
@@ -16,7 +17,6 @@
   "description": "Noble Singer Billy bot Discord",
   "version": "0.1.0",
   "main": "bot.js",
-  "devDependencies": {},
   "scripts": {
     "test": "none"
   },

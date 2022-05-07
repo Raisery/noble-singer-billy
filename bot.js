@@ -1,8 +1,9 @@
-const { Client, Intents } = require('discord.js'); // Chargement du client de Discord Commando
-const { token, prefix } = require('./config.json');
+const { Client, Intents } = require('discord.js');
 const MessageInterface = require('./music_feature/MessageInterface');
 const sendTimed = require('./utils/sendTimed');
-
+require("dotenv").config();
+const prefix = process.env.PREFIX;
+const token = process.env.BOT_TOKEN;
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES] });
 const speakers = new Map();
 
