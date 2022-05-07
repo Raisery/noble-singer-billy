@@ -61,6 +61,7 @@ client.on('messageCreate', async function (msg) {
 });
 
 client.on("interactionCreate", async function (interaction) {
+    await interaction.deferReply();
     const msgI = await MessageInterface.getMessageInterfaceFromChannel(interaction.channel);
     if (!msgI) {
         return
@@ -71,11 +72,13 @@ client.on("interactionCreate", async function (interaction) {
             break;
         case 'stop':
             msgI.stop();
-            await interaction.deferReply();
+            await interaction.reply("Stopped !");
+            await interaction.deleteReply();
             break;
         case 'skip':
             await msgI.skip();
-            await interaction.deferReply();
+            await interaction.reply("Stopped !");
+            await interaction.deleteReply();
             break;
     }
 });
