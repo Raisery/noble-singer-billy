@@ -25,9 +25,9 @@ client.on('messageCreate', async function (msg) {
         if (msg.content.slice(0, prefix.length) == prefix) {
             msg.delete();
             let command = msg.content.slice(prefix.length, msg.content.length);
+            let msgI = MessageInterface.getMessageInterfaceFromChannel(msg.channel);
             switch (command) {
                 case 'setup':
-                    let msgI = MessageInterface.getMessageInterfaceFromChannel(msg.channel);
                     if (msgI) {
                         return sendTimed(msg.channel, "Ce channel est déja setup", 3000);
                     }
@@ -35,9 +35,16 @@ client.on('messageCreate', async function (msg) {
                     //Initialisation du nouveau msgI
                     await MessageInterface.createMessageInterface(msg.channel);
                     break;
+                case 'uninstall' :
+                    if(!msgI) {
+                        return sendTimed(msg.channel, "Ce channel n'est pas setup", 3000);
+                    }
+                    MessageInterface.deleteMessageInterface(msgI);
+                    break;
+
             }
         }
-        //c'est une mauvaise commande
+        console.log("c'est une mauvaise commande");
         return
     }
 
