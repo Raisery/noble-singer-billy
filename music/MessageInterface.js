@@ -96,6 +96,9 @@ module.exports = class MessageInterface {
 
     static async restore(client) {
         const oldDataInterface = JSON.parse(fs.readFileSync(process.env.DATA));
+        if(!oldDataInterface.channels) {
+            return
+        }
         for(var oldInterfaceChannel of oldDataInterface.channels) {            
             const guild = await client.guilds.fetch(oldInterfaceChannel.guildId);
             const channel = await guild.channels.fetch(oldInterfaceChannel.id);
