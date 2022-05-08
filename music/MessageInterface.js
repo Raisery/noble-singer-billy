@@ -1,4 +1,3 @@
-const {GuildManager, Guild ,ChannelManager, Channel, TextChannel } = require('discord.js');
 const ytSearch = require('yt-search');
 const fs = require("fs");
 const sendTimed = require("../utils/sendTimed");
@@ -126,7 +125,7 @@ module.exports = class MessageInterface {
         if (this.speakerChannel != null && this.speakerChannel != voiceChannel) {
             return sendTimed(msg.channel, "Tu dois être dans le même channel que le bot", 3000)
         }
-        const search = ytSearch(msg.content);
+        const search = await ytSearch(msg.content);
         const song = search.videos.slice(0, 1)[0];
         this.songList.push(song);
         
