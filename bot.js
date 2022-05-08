@@ -5,8 +5,16 @@ const sleep = require('./utils/sleep');
 require("dotenv").config();
 const prefix = process.env.PREFIX;
 const token = process.env.BOT_TOKEN;
-const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES] });
-const speakers = new Map();
+
+
+const client = new Client({
+    intents: [
+        Intents.FLAGS.GUILDS,
+        Intents.FLAGS.GUILD_MESSAGES,
+        Intents.FLAGS.GUILD_VOICE_STATES,
+    ]
+});
+
 
 client.once('ready', async () => {
     console.log(`Logged in as ${client.user.tag}! (${client.user.id})`);
@@ -32,22 +40,23 @@ client.on('messageCreate', async function (msg) {
                     if (msgI) {
                         return sendTimed(msg.channel, "Ce channel est déja setup", 3000);
                     }
+                    let messages = await msg.channel.messages.fetch({ limit: 100 });
+                    messages.forEach(async function(msg) {
+                        await msg.delete();
+                    });
                     sendTimed(msg.channel, "Installation...", 3000);
                     //Initialisation du nouveau msgI
                     await MessageInterface.createMessageInterface(msg.channel);
-                    return
                     break;
-                case 'uninstall' :
-                    if(!msgI) {
+                case 'uninstall':
+                    if (!msgI) {
                         return sendTimed(msg.channel, "Ce channel n'est pas setup", 3000);
                     }
                     await MessageInterface.deleteMessageInterface(msgI);
-                    return
                     break;
 
             }
         }
-        console.log("c'est une mauvaise commande");
         return
     }
 

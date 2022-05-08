@@ -61,7 +61,6 @@ module.exports = class MessageInterface {
         let msgI = new MessageInterface(textChannel);
         await msgI.init();
         messageInterfaceList.push(msgI);
-        console.log(`Création d'un messageInterface : messageInterfaceList = ${messageInterfaceList.length}`);
         MessageInterface.save();
         return msgI
     }
@@ -69,20 +68,10 @@ module.exports = class MessageInterface {
     static async deleteMessageInterface(msgI) {
         await msgI.message.delete();
         let index = messageInterfaceList.indexOf(msgI);
-        if (index !== -1) {
-            messageInterfaceList.slice(index, 1);
+        if (index != -1) {
+            messageInterfaceList.splice(index, 1);
         }
-        console.log(`Suppression d'un messageInterface : messageInterfaceList = ${messageInterfaceList.length}`);
-
-        const data = JSON.parse(fs.readFileSync(process.env.DATA));
-        data.channels = [];
-        messageInterfaceList.forEach(function (messageInterface) {
-            if (messageInterface.id != msgI.id) {
-                data.list.push(messageInterface.textChannel);
-            }
-
-        });
-        fs.writeFileSync(process.env.DATA, JSON.stringify(data));
+        fs.writeFileSync(process.env.DATA, JSON.stringify({channel : messageInterfaceList}));
     }
 
     static getMessageInterfaceFromChannel(textChannel) {
@@ -98,23 +87,24 @@ module.exports = class MessageInterface {
     static save() {
         const data = JSON.parse(fs.readFileSync(process.env.DATA));
         data.channels = [];
-        messageInterfaceList.forEach(function (msgI) {
+        for(var msgI of messageInterfaceList) {
             data.channels.push(msgI.textChannel);
-        });
+        };
         fs.writeFileSync(process.env.DATA, JSON.stringify(data));
 
     }
 
     static async restore(client) {
-        const oldData = JSON.parse(fs.readFileSync(process.env.DATA));
-        oldData.channels.forEach(async function (textChannel) {
-            let channelListened = await client.channels.fetch(textChannel.id);
-            let messages = await channelListened.messages.fetch({ limit: 100 });
-            messages.forEach(async function (msg) {
+        const oldDataInterface = JSON.parse(fs.readFileSync(process.env.DATA));
+        for(var oldInterfaceChannel of oldDataInterface.channels) {            
+            const guild = await client.guilds.fetch(oldInterfaceChannel.guildId);
+            const channel = await guild.channels.fetch(oldInterfaceChannel.id);
+            let messages = await channel.messages.fetch({ limit: 100 });
+            messages.forEach(async function(msg) {
                 await msg.delete();
-            })
-            MessageInterface.createMessageInterface(channelListened);
-        });
+            });
+            MessageInterface.createMessageInterface(channel);
+        }
     }
 
     async addSong(msg) {
@@ -130,7 +120,6 @@ module.exports = class MessageInterface {
         }
         const search = await ytSearch(msg.content);
         const song = search.videos.slice(0, 1)[0];
-        console.log("On ajoute le son a la liste");
         this.songList.push(song);
         
         //si c'est la premiere musique on lance le speaker
@@ -163,7 +152,6 @@ module.exports = class MessageInterface {
         this.connection._state.subscription.player.stop();
         this.connection._state.subscription.player.unsubscribe(this.connection);
         this.connection.destroy();
-        console.log("presque reset");
         this.songList = [];
         this.speakerChannel = null;
         await this.update();
@@ -180,7 +168,6 @@ module.exports = class MessageInterface {
 
         this.songList = [];
         this.speakerChannel = null;
-        console.log("RESET DONE");
     }
 
 

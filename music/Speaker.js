@@ -42,11 +42,8 @@ module.exports = class Speaker {
         else {
             const stream = ytDownload(song.url, { filter: 'audioonly' });
             const resource = createAudioResource(stream, { inputType: StreamType.Arbitrary });
-            console.log("on lance la musique");
             speaker.play(resource);
             msgI.connection.subscribe(speaker);
-            console.log(msgI.connection);
-
         }
 
         
