@@ -41,8 +41,8 @@ client.on('messageCreate', async function (msg) {
                         return sendTimed(msg.channel, "Ce channel est déja setup", 3000);
                     }
                     let messages = await msg.channel.messages.fetch({ limit: 100 });
-                    messages.forEach(async function(msg) {
-                        await msg.delete();
+                    messages.forEach(async function(message) {
+                        await message.delete();
                     });
                     sendTimed(msg.channel, "Installation...", 3000);
                     //Initialisation du nouveau msgI
