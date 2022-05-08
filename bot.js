@@ -1,4 +1,4 @@
-const { Client, Intents } = require('discord.js');
+const { Client, Intents, GuildManager } = require('discord.js');
 const MessageInterface = require('./music/MessageInterface');
 const sendTimed = require('./utils/sendTimed');
 const sleep = require('./utils/sleep');
@@ -19,7 +19,7 @@ const client = new Client({
 client.once('ready', async () => {
     console.log(`Logged in as ${client.user.tag}! (${client.user.id})`);
     client.user.setActivity('Un bon son sa mére', { type: "LISTENING" });
-    await MessageInterface.restore(client);
+    await MessageInterface.restore(client.guilds.cache);
 });
 
 
@@ -32,7 +32,7 @@ client.on('messageCreate', async function (msg) {
     //si le msg est une commande
     if (msg.content[0] == prefix) {
         if (msg.content.slice(0, prefix.length) == prefix) {
-            msg.delete();
+            await msg.delete();
             let command = msg.content.slice(prefix.length, msg.content.length);
             let msgI = MessageInterface.getMessageInterfaceFromChannel(msg.channel);
             switch (command) {

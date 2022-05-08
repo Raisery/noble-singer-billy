@@ -1,3 +1,4 @@
+const {GuildManager, Guild ,ChannelManager, Channel, TextChannel } = require('discord.js');
 const ytSearch = require('yt-search');
 const fs = require("fs");
 const sendTimed = require("../utils/sendTimed");
@@ -71,7 +72,7 @@ module.exports = class MessageInterface {
         if (index != -1) {
             messageInterfaceList.splice(index, 1);
         }
-        fs.writeFileSync(process.env.DATA, JSON.stringify({channel : messageInterfaceList}));
+        MessageInterface.save();
     }
 
     static getMessageInterfaceFromChannel(textChannel) {
@@ -85,29 +86,33 @@ module.exports = class MessageInterface {
 
     //sauvegarde les channels 
     static save() {
-        const data = JSON.parse(fs.readFileSync(process.env.DATA));
-        data.channels = [];
+        const newChannels = []
         for(var msgI of messageInterfaceList) {
-            data.channels.push(msgI.textChannel);
-        };
-        fs.writeFileSync(process.env.DATA, JSON.stringify(data));
+            newChannels.push({id : msgI.textChannel.id, guildId : msgI.textChannel.guildId});
+        }
+        fs.writeFileSync(process.env.DATA, JSON.stringify({channels : newChannels}));
 
     }
 
-    static async restore(client) {
-        const oldDataInterface = JSON.parse(fs.readFileSync(process.env.DATA));
-        if(!oldDataInterface.channels) {
+    static async restore(guildsCache) {
+        console.log("\nRestauration des anciennes instances...\n");
+        guildsCache.map(guild => guild.name);
+        // RAPPEL : les data sont stockée en [channels: {id : "616541", guildId : "4964984"},...]
+        const oldData = JSON.parse(fs.readFileSync(process.env.DATA));
+        if(!oldData.channels) {
             return
         }
-        for(var oldInterfaceChannel of oldDataInterface.channels) {            
-            const guild = await client.guilds.fetch(oldInterfaceChannel.guildId);
-            const channel = await guild.channels.fetch(oldInterfaceChannel.id);
+        for(var oldChannel of oldData.channels) {      
+            const guild = guildsCache.get(oldChannel.guildId);
+            const channel = guild.channels.cache.get(oldChannel.id);
             let messages = await channel.messages.fetch({ limit: 100 });
             messages.forEach(async function(msg) {
                 await msg.delete();
             });
-            MessageInterface.createMessageInterface(channel);
+            await MessageInterface.createMessageInterface(channel);
+            console.log(`Instance de la guild ${guild.name} restaurée dans le channel ${channel.name}`);
         }
+        console.log(`\nRestauration complète, nombre total d'instances : ${messageInterfaceList.length}`);        
     }
 
     async addSong(msg) {
@@ -121,7 +126,7 @@ module.exports = class MessageInterface {
         if (this.speakerChannel != null && this.speakerChannel != voiceChannel) {
             return sendTimed(msg.channel, "Tu dois être dans le même channel que le bot", 3000)
         }
-        const search = await ytSearch(msg.content);
+        const search = ytSearch(msg.content);
         const song = search.videos.slice(0, 1)[0];
         this.songList.push(song);
         

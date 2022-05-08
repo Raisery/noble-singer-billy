@@ -6,31 +6,35 @@ module.exports = class Speaker {
 
     static async play(msgI) {
 
-        msgI.connection = joinVoiceChannel({
-            channelId: msgI.speakerChannel.id,
-            guildId: msgI.speakerChannel.guild.id,
-            adapterCreator: msgI.speakerChannel.guild.voiceAdapterCreator,
-        });
+        if(!msgI.connection) {
+            msgI.connection = joinVoiceChannel({
+                channelId: msgI.speakerChannel.id,
+                guildId: msgI.speakerChannel.guild.id,
+                adapterCreator: msgI.speakerChannel.guild.voiceAdapterCreator,
+            });
+            msgI.connection.on(VoiceConnectionStatus.Ready, () => {
+                console.log('The connection has entered the Ready state - ready to play audio!');
+            });
+    
+            msgI.connection.on(VoiceConnectionStatus.Disconnected, async (oldState, newState) => {
+                try {
+                    console.log("Tentative de reconnexion")
+                    await Promise.race([
+                        entersState(msgI.connection, VoiceConnectionStatus.Signalling, 5_000),
+                        entersState(msgI.connection, VoiceConnectionStatus.Connecting, 5_000),
+                    ]);
+                    
+                    // Seems to be reconnecting to a new channel - ignore disconnect
+                } catch (error) {
+                    // Seems to be a real disconnect which SHOULDN'T be recovered from
+                    console.error(error);
+                    msgI.connection.destroy();
+                }
+            });
+        }
+        
 
-        msgI.connection.on(VoiceConnectionStatus.Ready, () => {
-            console.log('The connection has entered the Ready state - ready to play audio!');
-        });
-
-        msgI.connection.on(VoiceConnectionStatus.Disconnected, async (oldState, newState) => {
-            try {
-                console.log("Tentative de reconnexion")
-                await Promise.race([
-                    entersState(msgI.connection, VoiceConnectionStatus.Signalling, 5_000),
-                    entersState(msgI.connection, VoiceConnectionStatus.Connecting, 5_000),
-                ]);
-                
-                // Seems to be reconnecting to a new channel - ignore disconnect
-            } catch (error) {
-                // Seems to be a real disconnect which SHOULDN'T be recovered from
-                console.error(error);
-                msgI.connection.destroy();
-            }
-        });
+        
         const speaker = createAudioPlayer();
         const song = msgI.songList[0];
 
