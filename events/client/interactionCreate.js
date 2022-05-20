@@ -7,10 +7,14 @@ module.exports = {
         if (interaction.isCommand()) {
             const cmd = client.commands.get(interaction.commandName);
             if (client.messagesList.has(interaction.guildId) && cmd.name !== "uninstall") {
-                await interaction.reply('Les commandes sont désactivée dans ce channel');
-                await sleep(3000);
-                await interaction.deleteReply();
-                return
+                let msg = client.messagesList.get(interaction.guildId);
+                if (msg.channelId === interaction.channelId) {
+                    await interaction.reply('Les commandes sont désactivée dans ce channel');
+                    await sleep(3000);
+                    await interaction.deleteReply();
+                    return
+                }
+
             }
             if (!cmd) {
                 await interaction.reply('Cette commande n\'existe pas!');
