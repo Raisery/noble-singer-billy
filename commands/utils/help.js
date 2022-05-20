@@ -8,8 +8,8 @@ module.exports = {
             .setTitle('❓ Help ❓')
             .setThumbnail(client.user.displayAvatarURL())
             .addFields(
-                {name: 'Latence', value: `\`${client.ws.ping}ms\``, inline: true },
-                {name: 'Uptime', value: `<t:${parseInt(client.readyTimestamp / 1000)}:R>`, inline: true}
+                {name: 'Utils', value: `\n\`/ping\` : Affiche les infos de latence du bot\n`, inline: false },
+                {name: 'Music', value: `\n\`/play\` : Joue la musique entrée en paramétre\n`, inline: false}
             )
             .setTimestamp()
             .setFooter({ text: interaction.user.username, iconURL: interaction.user.displayAvatarURL() });
