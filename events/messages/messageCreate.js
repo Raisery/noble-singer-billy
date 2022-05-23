@@ -8,6 +8,7 @@ module.exports = {
     async execute(client, message) {
         if(message.author.bot) return
         if(!client.messagesList.has(message.guildId)) return
+        if(message.channelId != client.messagesList.get(message.guildId).channelId) return
         await message.delete();
 
         if(!message.member.voice.channelId) {
@@ -54,6 +55,6 @@ module.exports = {
 
         await queue.play(track);
         const msg = client.messagesList.get(message.guildId);
-        MessageUI.updateMessageUI(msg, queue);
+        await MessageUI.updateMessageUI(msg, queue);
     }
 }

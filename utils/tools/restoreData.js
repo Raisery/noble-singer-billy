@@ -14,7 +14,7 @@ module.exports = async function restoreData(client) {
         const channel = await guild.channels.cache.get(msgData.channelId);
 
         //Suppresion des anciens messages du channel
-        channel.messages.fetch({ limit: 100 })
+        await channel.messages.fetch({ limit: 100 })
             .then(async messages => {
                 messages.forEach(async message => {
                         await message.delete();
